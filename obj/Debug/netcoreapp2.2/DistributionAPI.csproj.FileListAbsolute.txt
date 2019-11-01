@@ -1,0 +1,14 @@
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.csproj.CoreCompileInputs.cache
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.RazorAssemblyInfo.cache
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.RazorAssemblyInfo.cs
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.AssemblyInfoInputs.cache
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.AssemblyInfo.cs
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\bin\Debug\netcoreapp2.2\DistributionAPI.deps.json
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\bin\Debug\netcoreapp2.2\DistributionAPI.runtimeconfig.json
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\bin\Debug\netcoreapp2.2\DistributionAPI.runtimeconfig.dev.json
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\bin\Debug\netcoreapp2.2\DistributionAPI.dll
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.RazorTargetAssemblyInfo.cache
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\bin\Debug\netcoreapp2.2\DistributionAPI.pdb
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.dll
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.pdb
+C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.csprojAssemblyReference.cache
