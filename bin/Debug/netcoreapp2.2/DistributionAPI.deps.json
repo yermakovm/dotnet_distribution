@@ -1,7 +1,7 @@
 {
   "runtimeTarget": {
     "name": ".NETCoreApp,Version=v2.2",
-    "signature": "843973f401a95eb21bccd098f128e0e8a7ae9d28"
+    "signature": "894457a609eb7b5bc99945dac38de57aa63df3e2"
   },
   "compilationOptions": {
     "defines": [
@@ -24,10 +24,12 @@
     ".NETCoreApp,Version=v2.2": {
       "DistributionAPI/1.0.0": {
         "dependencies": {
+          "AutoMapper.Extensions.Microsoft.DependencyInjection": "7.0.0",
+          "EntityFramework": "6.3.0",
           "HtmlAgilityPack": "1.11.16",
           "Ical.Net": "4.1.11",
-          "Microsoft.AspNet.WebApi.Cors": "5.2.7",
           "Microsoft.AspNetCore.App": "2.2.0",
+          "Microsoft.AspNetCore.Cors": "2.2.0",
           "Microsoft.NETCore.App": "2.2.0",
           "Newtonsoft.Json": "12.0.2",
           "StackifyMiddleware": "3.0.4.2"
@@ -39,6 +41,37 @@
           "DistributionAPI.dll": {}
         }
       },
+      "AutoMapper/9.0.0": {
+        "dependencies": {
+          "Microsoft.CSharp": "4.5.0",
+          "System.Reflection.Emit": "4.3.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/AutoMapper.dll": {
+            "assemblyVersion": "9.0.0.0",
+            "fileVersion": "9.0.0.0"
+          }
+        },
+        "compile": {
+          "lib/netstandard2.0/AutoMapper.dll": {}
+        }
+      },
+      "AutoMapper.Extensions.Microsoft.DependencyInjection/7.0.0": {
+        "dependencies": {
+          "AutoMapper": "9.0.0",
+          "Microsoft.Extensions.DependencyInjection.Abstractions": "2.2.0"
+        },
+        "runtime": {
+          "lib/netstandard2.0/AutoMapper.Extensions.Microsoft.DependencyInjection.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "7.0.0.0"
+          }
+        },
+        "compile": {
+          "lib/netstandard2.0/AutoMapper.Extensions.Microsoft.DependencyInjection.dll": {}
+        }
+      },
+      "EntityFramework/6.3.0": {},
       "HtmlAgilityPack/1.11.16": {
         "dependencies": {
           "System.Net.Http": "4.3.2",
@@ -70,61 +103,6 @@
         },
         "compile": {
           "lib/netstandard1.3/Ical.Net.dll": {}
-        }
-      },
-      "Microsoft.AspNet.Cors/5.2.7": {
-        "runtime": {
-          "lib/net45/System.Web.Cors.dll": {
-            "assemblyVersion": "5.2.7.0",
-            "fileVersion": "5.2.61128.0"
-          }
-        },
-        "compile": {
-          "lib/net45/System.Web.Cors.dll": {}
-        }
-      },
-      "Microsoft.AspNet.WebApi.Client/5.2.7": {
-        "dependencies": {
-          "Newtonsoft.Json": "12.0.2",
-          "Newtonsoft.Json.Bson": "1.0.1"
-        },
-        "runtime": {
-          "lib/netstandard2.0/System.Net.Http.Formatting.dll": {
-            "assemblyVersion": "5.2.7.0",
-            "fileVersion": "5.2.61128.0"
-          }
-        },
-        "compile": {
-          "lib/netstandard2.0/System.Net.Http.Formatting.dll": {}
-        }
-      },
-      "Microsoft.AspNet.WebApi.Core/5.2.7": {
-        "dependencies": {
-          "Microsoft.AspNet.WebApi.Client": "5.2.7"
-        },
-        "runtime": {
-          "lib/net45/System.Web.Http.dll": {
-            "assemblyVersion": "5.2.7.0",
-            "fileVersion": "5.2.61128.0"
-          }
-        },
-        "compile": {
-          "lib/net45/System.Web.Http.dll": {}
-        }
-      },
-      "Microsoft.AspNet.WebApi.Cors/5.2.7": {
-        "dependencies": {
-          "Microsoft.AspNet.Cors": "5.2.7",
-          "Microsoft.AspNet.WebApi.Core": "5.2.7"
-        },
-        "runtime": {
-          "lib/net45/System.Web.Http.Cors.dll": {
-            "assemblyVersion": "5.2.7.0",
-            "fileVersion": "5.2.61128.0"
-          }
-        },
-        "compile": {
-          "lib/net45/System.Web.Http.Cors.dll": {}
         }
       },
       "Newtonsoft.Json/12.0.2": {
@@ -291,6 +269,16 @@
           "ref/netstandard1.3/System.Xml.XPath.XmlDocument.dll": {}
         }
       },
+      "Microsoft.AspNet.WebApi.Client/5.2.6": {
+        "dependencies": {
+          "Newtonsoft.Json": "12.0.2",
+          "Newtonsoft.Json.Bson": "1.0.1"
+        },
+        "compile": {
+          "lib/netstandard2.0/System.Net.Http.Formatting.dll": {}
+        },
+        "compileOnly": true
+      },
       "Microsoft.AspNetCore/2.2.0": {
         "dependencies": {
           "Microsoft.AspNetCore.Diagnostics": "2.2.0",
@@ -332,7 +320,7 @@
       },
       "Microsoft.AspNetCore.App/2.2.0": {
         "dependencies": {
-          "Microsoft.AspNet.WebApi.Client": "5.2.7",
+          "Microsoft.AspNet.WebApi.Client": "5.2.6",
           "Microsoft.AspNetCore": "2.2.0",
           "Microsoft.AspNetCore.Antiforgery": "2.2.0",
           "Microsoft.AspNetCore.Authentication": "2.2.0",
@@ -3437,6 +3425,27 @@
       "serviceable": false,
       "sha512": ""
     },
+    "AutoMapper/9.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-xCqvoxT4HIrNY/xlXG9W+BA/awdrhWvMTKTK/igkGSRbhOhpl3Q8O8Gxlhzjc9JsYqE7sS6AxgyuUUvZ6R5/Bw==",
+      "path": "automapper/9.0.0",
+      "hashPath": "automapper.9.0.0.nupkg.sha512"
+    },
+    "AutoMapper.Extensions.Microsoft.DependencyInjection/7.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-szI4yeRIM7GWe9JyekW0dKYehPB0t6M+I55fPeCebN6PhS7zQZa0eG3bgOnOx+eP3caSNoE7KEJs2rk7MLsh8w==",
+      "path": "automapper.extensions.microsoft.dependencyinjection/7.0.0",
+      "hashPath": "automapper.extensions.microsoft.dependencyinjection.7.0.0.nupkg.sha512"
+    },
+    "EntityFramework/6.3.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-mEvhoXscTyLFMcnbLzKlbWdx6N8fCY2IMe4drjUTMFqOqI4KThnTPXr1m50oXDJAn5PvCy2e90IcwN/OxkJUjg==",
+      "path": "entityframework/6.3.0",
+      "hashPath": "entityframework.6.3.0.nupkg.sha512"
+    },
     "HtmlAgilityPack/1.11.16": {
       "type": "package",
       "serviceable": true,
@@ -3450,34 +3459,6 @@
       "sha512": "sha512-4ybehjodGZjljUh5iphNp55sQPSVnSPOIayyynoSEdUmBGZySrn8QxaVj+bRDv1AOyCcJKpbrb9+miMh1P0vpA==",
       "path": "ical.net/4.1.11",
       "hashPath": "ical.net.4.1.11.nupkg.sha512"
-    },
-    "Microsoft.AspNet.Cors/5.2.7": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-r7qTj8SKzHT32F2mbB3qgE+6VUd2xILkGaq4LtMW+KP3dDAQmI//j+8Ku01I3D1GKZvB9PU8HTJPkaw7sxSLtQ==",
-      "path": "microsoft.aspnet.cors/5.2.7",
-      "hashPath": "microsoft.aspnet.cors.5.2.7.nupkg.sha512"
-    },
-    "Microsoft.AspNet.WebApi.Client/5.2.7": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-/76fAHknzvFqbznS6Uj2sOyE9rJB3PltY+f53TH8dX9RiGhk02EhuFCWljSj5nnqKaTsmma8DFR50OGyQ4yJ1g==",
-      "path": "microsoft.aspnet.webapi.client/5.2.7",
-      "hashPath": "microsoft.aspnet.webapi.client.5.2.7.nupkg.sha512"
-    },
-    "Microsoft.AspNet.WebApi.Core/5.2.7": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-gM2QzApnHdy1FbKUJ/ROGJSm69P2G+HMoVd/t5Vq1O/zZ5TI4IKC9PX6nUfRt/NHgebZOIWHpB4/4K4inuy4yQ==",
-      "path": "microsoft.aspnet.webapi.core/5.2.7",
-      "hashPath": "microsoft.aspnet.webapi.core.5.2.7.nupkg.sha512"
-    },
-    "Microsoft.AspNet.WebApi.Cors/5.2.7": {
-      "type": "package",
-      "serviceable": true,
-      "sha512": "sha512-LUY5ufoiYLHKZXdrrNe7GlAwmu9WlyrX5iUtBSLwFZ31/tvPobyU7j1E31OWVdGZMBvRCxKbfyB7unxgrjTRpA==",
-      "path": "microsoft.aspnet.webapi.cors/5.2.7",
-      "hashPath": "microsoft.aspnet.webapi.cors.5.2.7.nupkg.sha512"
     },
     "Newtonsoft.Json/12.0.2": {
       "type": "package",
@@ -3548,6 +3529,13 @@
       "sha512": "sha512-A/uxsWi/Ifzkmd4ArTLISMbfFs6XpRPsXZonrIqyTY70xi8t+mDtvSM5Os0RqyRDobjMBwIDHDL4NOIbkDwf7A==",
       "path": "system.xml.xpath.xmldocument/4.3.0",
       "hashPath": "system.xml.xpath.xmldocument.4.3.0.nupkg.sha512"
+    },
+    "Microsoft.AspNet.WebApi.Client/5.2.6": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-owAlEIUZXWSnkK8Z1c+zR47A0X6ykF4XjbPok4lQKNuciUfHLGPd6QnI+rt/8KlQ17PmF+I4S3f+m+Qe4IvViw==",
+      "path": "microsoft.aspnet.webapi.client/5.2.6",
+      "hashPath": "microsoft.aspnet.webapi.client.5.2.6.nupkg.sha512"
     },
     "Microsoft.AspNetCore/2.2.0": {
       "type": "package",

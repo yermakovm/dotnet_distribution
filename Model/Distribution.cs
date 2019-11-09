@@ -4,14 +4,10 @@ using System.Linq;
 
 namespace DistributionAPI.Model
 {
-    interface IDistributionBuilder
-    {
-        void Build();
-    }
 
-    public class Distribution : IDistributionBuilder
-    {
 
+    public class Distribution
+    {
         public List<Sme> smes;
         public List<Team> raw_schedule;
         public int average_load;
@@ -46,44 +42,6 @@ namespace DistributionAPI.Model
             }
         }
 
-        class TeamComparer : IEqualityComparer<Team>
-        {
-            public bool Equals(Team a, Team b)
-            {
-                bool e = a.name.Equals(b.name);
-                return e;
-            }
-            public int GetHashCode(Team t)
-            {
-                return t.name.GetHashCode();
-            }
-        }
-        class TeamListComparer : IEqualityComparer<List<Team>>
-        {
-            public bool Equals(List<Team> a, List<Team> b)
-            {
-                bool e = false;
-                if (a.Count == b.Count)
-                {
-                    for (int i = 0; i < a.Count; i++)
-                    {
-                        if (a[i].name != b[i].name)
-                        {
-                            e = false;
-                            break;
-                        }
-                        else e = true;
-                    }
-                }
-                return e;
-            }
-
-            public int GetHashCode(List<Team> t)
-            {
-                return t.GetHashCode();
-            }
-        }
-
         public int GetListWeight(List<Team> team)
         {
             return team.Sum(y => y.total_weight);
@@ -113,15 +71,58 @@ namespace DistributionAPI.Model
                 }
             return res;
         }
+
+        private List<List<Team>> SplitOption(List<List<Team>> options)
+        {
+            var initial = options.Where(x => x.Count > 1).ToList();
+            //mutate options
+            if (initial.Count > 0)
+            {
+                var splitted_teamlist = initial.First();
+                options.Remove(splitted_teamlist);
+                var splitted_team = splitted_teamlist.First();
+                splitted_teamlist.Remove(splitted_team);
+                var separated = new List<List<Team>>();
+                var new_teamlist = new List<Team>();
+                new_teamlist.Add(splitted_team);
+                separated.Add(new_teamlist);
+                options.Add(splitted_teamlist);
+                options.Add(new_teamlist);
+            }
+            return options;
+        }
+
+        private bool ProcessSimilarOptions(List<List<Team>> same, List<List<Team>> teamlist)
+        {
+            bool foundsame = false;
+            if (same.Count > 1)
+            {
+                foundsame = true;
+                List<Team> min = same.First();
+                foreach (var same_team in same)
+                {
+                    if (Math.Abs(GetListWeight(min) - average_load) > Math.Abs(GetListWeight(same_team) - average_load))
+                    {
+                        min = same_team;
+                    }
+                }
+                //removing all but the lightest from source
+                TeamListComparer teamsComparer = new TeamListComparer();
+                same.RemoveAll(x => teamsComparer.Equals(min, x));
+                foreach (var same_team in same)
+                    teamlist.RemoveAll(x => new TeamListComparer().Equals(same_team, x));
+            }
+            return foundsame;
+        }
+
         private void FilterOptions(List<List<Team>> source)
         {
             List<List<Team>> temp = source;
             distributed_teamlist = temp;
-            var test = distributed_teamlist.Where(x => x.Where(y => y.name == "Dnipro Team A").Any()).ToList();
+            bool foundsame = false;
             //iterating through the team arrays
-            for (int i = 0; i < source.Count; i++)
+            for (int i = 0; i < source.Count && !foundsame; i++)
             {
-                bool foundsame = false;
                 List<List<Team>> same = new List<List<Team>>();
                 //iterating through the rest of team arrays after i
                 for (int j = i; j < source.Count; j++)
@@ -129,54 +130,21 @@ namespace DistributionAPI.Model
                     //finding team arrays having common names
                     bool hasSameTeams = source[i].Intersect(source[j], new TeamComparer()).Any();
                     if (hasSameTeams)
-                    {
                         same.Add((source[j]));
-                    }
                 }
-
                 //finding the lightest team array among similar
-                if (same.Count > 1)
-                {
-                    foundsame = true;
-                    List<Team> min = same.First();
-                    foreach (var same_team in same)
-                    {
-                        if (Math.Abs(GetListWeight(min) - average_load) > Math.Abs(GetListWeight(same_team) - average_load))
-                        {
-                            min = same_team;
-                        }
-                    }
-                    //removing all but the lightest from source
-                    TeamListComparer tlc = new TeamListComparer();
-                    same.RemoveAll(x => tlc.Equals(min, x));
-                    foreach (var same_team in same)
-                        temp.RemoveAll(x => new TeamListComparer().Equals(same_team, x));
-                }
-                if (foundsame)
-                    break;
+                foundsame = ProcessSimilarOptions(same, temp);
             }
             //do the same again if the list is too big
             if (temp.Count > smes.Count)
             {
                 FilterOptions(temp);
             }
-            //
+            //or too small
             else if (temp.Count < smes.Count)
             {
-                var longlist = temp.Where(x => x.Count > 1).ToList();
-                if (longlist.Count > 0)
-                {
-                    var to_split = longlist.First();
-                    temp.Remove(to_split);
-                    var new_cell = to_split.First();
-                    to_split.Remove(new_cell);
-                    var separated = new List<List<Team>>();
-                    var new_list = new List<Team>();
-                    new_list.Add(new_cell);
-                    separated.Add(new_list);
-                    temp.Add(to_split);
-                    temp.Add(new_list);
-                }
+                temp = SplitOption(temp);
+                FilterOptions(temp);
             }
         }
 
@@ -189,7 +157,7 @@ namespace DistributionAPI.Model
             }
         }
 
-        public void Build()
+        public void Build(int[] id = null)
         {
             GetPossibleOptions(raw_schedule, new List<Team>());
             FilterOptions(distributed_teamlist);

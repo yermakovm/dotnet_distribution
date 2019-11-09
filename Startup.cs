@@ -2,15 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
+using DistributionAPI.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-
+using Microsoft.Extensions.Hosting;
+using Microsoft.EntityFrameworkCore.SqlServer;
 namespace DistributionAPI
 {
     public class Startup
@@ -25,12 +29,19 @@ namespace DistributionAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddScoped<IRepository<DistributionData>, Repository<DistributionData>>();
+            services.AddScoped<IRepository<Sme>, Repository<Sme>>();
+            services.AddScoped<IRepository<Team>, Repository<Team>>();
+            services.AddScoped<IRepository<CS>, Repository<CS>>();
+            services.AddDbContext<DistributionContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")).UseLazyLoadingProxies());
             services.AddCors();
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+            services.AddAutoMapper(typeof(Startup));
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
+            services.AddRazorPages();                   
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -44,10 +55,12 @@ namespace DistributionAPI
             /*app.UseCors(
              options => options.WithOrigins("http://mikesandbox.net,http://www.mikesandbox.net,http://mikesandbox.net:4200,http://localhost:4200,http://localhost").AllowAnyMethod().AllowAnyHeader()
              );*/
-            app.UseCors(builder => builder.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin().AllowCredentials());
+            app.UseCors(builder => builder.AllowAnyOrigin());
 
             app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
-            app.UseMvc();
+            app.UseRouting();
+            app.UseAuthorization();
+            app.UseEndpoints(endpoints => endpoints.MapControllers());
         }
     }
 }

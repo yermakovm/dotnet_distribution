@@ -8,41 +8,26 @@ using DistributionAPI.Model;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.IO;
-using Ical.Net;
 using System.Text;
 
 namespace DistributionAPI.Classes
 {   //storing information about schedule from specific location
-    public class Location
-    {
-        public string city;
-        public List<string> shifts;
-        public string url;
-
-        public Location(string _city, List<string> _shifts, string _url)
-        {
-            city = _city;
-            shifts = _shifts;
-            url = _url;
-        }
-    }
     
     public class Z3KParser
     {
         //raw html data
         string schedule;
-        //logging in
         CookieContainer cookies;
         const string user = "mikhailermakov";
         const string pass = "81414922Tor!";
 
-        //list of data from /schedule request
+        // /schedule URL request data
         Dictionary<int, string> idRolePairs = new Dictionary<int, string>();
-        List<Person> persons = new List<Person>();
+        List<CS> cslist = new List<CS>();
         public List<Sme> sme = new List<Sme>();
         public List<Team> teams = new List<Team>();
 
-        public void GetSchedule(string user, string pass, string url)
+        public void LogIn()
         {
             string formUrl = "https://core.zone3000.net/staff_sign_in";
             var formParams = new
@@ -64,6 +49,11 @@ namespace DistributionAPI.Classes
                 os.Write(bytes, 0, bytes.Length);
             }
             WebResponse resp = req.GetResponse();
+        }
+
+        public void GetSchedule(string url)
+        {
+            LogIn();
             string pageSource;
             HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
             getRequest.CookieContainer = cookies;
@@ -73,7 +63,6 @@ namespace DistributionAPI.Classes
                 pageSource = sr.ReadToEnd();
             }
             schedule = pageSource;
-
         }
 
         public List<Location> SetLocations()
@@ -81,26 +70,31 @@ namespace DistributionAPI.Classes
             List<Location> locations = new List<Location>();
             List<string> shifts = new List<string>();
             shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 0 and position() < 31][text()>2]");
-            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 31 and position() < 96][text()>2]");
+            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 31 and position() < 94][text()>2]");
             shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 161 and position() < 213][text()>2]");
-            Location loc = new Location("Kharkiv/Lviv", shifts, @"https://staff.zone3000.net/schedule");
+            Location loc = new Location("Kharkiv/Lviv", shifts, "https://staff.zone3000.net/schedule");
             locations.Add(loc);
             shifts = new List<string>();
             shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 0 and position() < 13][text()>2]");
             shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 13 and position() < 30][text()>2]");
             shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 47 and position() < 66][text()>2]");
-            loc = new Location("Dnipro", shifts, @"https://staff.zone3000.net/schedule?utf8=✓&department_id=53&date%5Byear%5D=2019&date%5Bmonth%5D=10&date%5Bday%5D=1");
+            string url = "https://staff.zone3000.net/schedule?utf8=✓&department_id=53&date[year]=" + DateTime.Today.Year + "&date[month]=" + DateTime.Today.Month + "&date[day]=1";
+            loc = new Location("Dnipro", shifts, url);
             locations.Add(loc);
             return locations;
         }
 
+        public Z3KParser()
+        {
+
+        }
         public Z3KParser(int day, int shiftNumber)
         {
             List<Location> locs = SetLocations();
 
             for (int i = 0; i < locs.Count; i++)
             {
-                GetSchedule(user, pass, locs[i].url);
+                GetSchedule(locs[i].url);
                 string shift = locs[i].shifts[shiftNumber - 1];
                 shift = string.Format(shift, day.ToString());
                 HtmlDocument doc = new HtmlDocument();
@@ -120,7 +114,7 @@ namespace DistributionAPI.Classes
         public void SplitTeams()
         {
             List<string> teamnames = new List<string>();
-            foreach (var person in persons)
+            foreach (var person in cslist)
             {
                 teamnames.Add(person.team);
             }
@@ -128,11 +122,11 @@ namespace DistributionAPI.Classes
 
             foreach (var temp in teamnames)
             {
-                teams.Add(new Team(temp, persons.Where(x => x.team == temp).ToList()));
+                teams.Add(new Team(temp, cslist.Where(x => x.team == temp).ToList()));
             }
         }
 
-        public async Task ParsePersons()
+        public async Task ParseCSs()
         {
             List<Task> listOfTasks = new List<Task>();
 
@@ -141,9 +135,10 @@ namespace DistributionAPI.Classes
                 listOfTasks.Add(RequestInfo(cs.Key, cs.Value)); ;
             }
             await Task.WhenAll(listOfTasks);
+            SplitTeams();
         }
 
-        async Task<Task> RequestInfo(int id, string role)
+        async Task<int> GetActualID(int id)
         {
             string url = "https://core.zone3000.net/v1/users?q%5Bactive_eq%5D=true&q%5Bprofile_identifier_eq={0}";
             url = string.Format(url, id.ToString());
@@ -156,17 +151,29 @@ namespace DistributionAPI.Classes
                 pageSource = sr.ReadToEnd();
             }
             JObject joResponse = JObject.Parse(pageSource);
-            int actual_id = (int)joResponse["data"][0]["id"];
-            //after we get url - get other data by direct userID api call
-            url = string.Format("https://core.zone3000.net/v1/users/{0}", actual_id.ToString());
+            return (int)joResponse["data"][0]["id"];
+        }
+        public async Task<JObject> GetPersonJson(int id)
+        {
+            int actual_id = await GetActualID(id);
+            string url = string.Format("https://core.zone3000.net/v1/users/{0}", actual_id.ToString());
+            HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
             getRequest = (HttpWebRequest)WebRequest.Create(url);
             getRequest.CookieContainer = cookies;
-            getResponse = await getRequest.GetResponseAsync();
+            WebResponse getResponse = await getRequest.GetResponseAsync();
+            string pageSource = "";
             using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
             {
                 pageSource = sr.ReadToEnd();
             }
-            joResponse = JObject.Parse(pageSource);
+            JObject joResponse = JObject.Parse(pageSource);
+            return joResponse;
+        }
+
+        async Task<Task> RequestInfo(int id, string role)
+        {
+            //after we get url - get other data by direct userID api call
+            JObject joResponse = await GetPersonJson(id);
             var position = joResponse["data"]["positions"].Where(x => x["position_profile_name"].ToString() == "Customer Support Specialist" || x["position_profile_name"].ToString() == "Subject Matter Expert");
             JToken max;
             string level;
@@ -193,9 +200,9 @@ namespace DistributionAPI.Classes
 
             string name = joResponse["data"]["full_name_eng"].ToString();
             if (role == "Subject Matter Expert")
-                sme.Add(new Sme(id, name, role, level, team));
+                sme.Add(new Sme(id, name));
             else
-                persons.Add(new Person(id, name, role, level, team));
+                cslist.Add(new CS(id, name, role, level, team));
             return Task.CompletedTask;
         }
     }

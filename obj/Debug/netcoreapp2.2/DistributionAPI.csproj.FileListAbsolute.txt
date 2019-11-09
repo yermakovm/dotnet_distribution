@@ -11,4 +11,3 @@ C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2
 C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\bin\Debug\netcoreapp2.2\DistributionAPI.pdb
 C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.dll
 C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.pdb
-C:\Users\Mike\source\repos\DistributionAPI\DistributionAPI\obj\Debug\netcoreapp2.2\DistributionAPI.csprojAssemblyReference.cache
