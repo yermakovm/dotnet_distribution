@@ -30,19 +30,23 @@ namespace DistributionAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IRepository<DistributionData>, Repository<DistributionData>>();
-            services.AddScoped<IRepository<Sme>, Repository<Sme>>();
-            services.AddScoped<IRepository<Team>, Repository<Team>>();
-            services.AddScoped<IRepository<CS>, Repository<CS>>();
-            services.AddDbContext<DistributionContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")).UseLazyLoadingProxies());
+            if(Environment.OSVersion.VersionString.Contains("Windows"))
+                services.AddDbContext<DistributionContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")).UseLazyLoadingProxies());
+            else services.AddDbContext<DistributionContext>(options => options.UseMySql(Configuration.GetConnectionString("Unix")).UseLazyLoadingProxies());
             services.AddCors();
             services.AddAutoMapper(typeof(Startup));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Latest);
+            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
             services.AddRazorPages();                   
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+            });
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -50,13 +54,13 @@ namespace DistributionAPI
             else
             {
                 // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
+                //app.UseHsts();
             }
-            /*app.UseCors(
-             options => options.WithOrigins("http://mikesandbox.net,http://www.mikesandbox.net,http://mikesandbox.net:4200,http://localhost:4200,http://localhost").AllowAnyMethod().AllowAnyHeader()
-             );*/
+            app.UseCors(
+             options => options.WithOrigins("https://mikesandbox.net,https://www.mikesandbox.net,https://mikesandbox.net:4200,https://localhost:4200,https://localhost").AllowAnyMethod().AllowAnyHeader()
+             );
             app.UseCors(builder => builder.AllowAnyOrigin());
-
+            app.UseHttpsRedirection();
             app.UseMiddleware<StackifyMiddleware.RequestTracerMiddleware>();
             app.UseRouting();
             app.UseAuthorization();

@@ -10,18 +10,30 @@ namespace DistributionAPI.Model
         public Guid Id { get; set; }
         public int z3kid { get; set; }
         public string name { get; set; }
-
-       protected Person()
+        public string team { get; set; }
+        public string location { get; set; }
+        protected Person()
         {
             z3kid = 0;
             name = "noname";
         }
 
-        public Person(int _id, string _name)
+        public Person(int _id, string _name, string _team,string _location)
         {
             z3kid = _id;
             name = _name;
+            team = _team;
+            location = _location;
         }
-
+        public bool SameLocation(string teamname)
+        {
+            string teamlocation;
+            if (teamname != "OX" && teamname!="Overshifts")
+            {
+                teamlocation = teamname.Substring(0, teamname.ToString().IndexOf(" "));
+                return this.location == teamlocation;
+            }
+            else return false;
+        }
     }
 }

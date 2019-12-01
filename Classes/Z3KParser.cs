@@ -12,7 +12,7 @@ using System.Text;
 
 namespace DistributionAPI.Classes
 {   //storing information about schedule from specific location
-    
+
     public class Z3KParser
     {
         //raw html data
@@ -71,7 +71,7 @@ namespace DistributionAPI.Classes
             List<string> shifts = new List<string>();
             shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 0 and position() < 31][text()>2]");
             shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 31 and position() < 94][text()>2]");
-            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 161 and position() < 213][text()>2]");
+            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 158 and position() < 213][text()>2]");
             Location loc = new Location("Kharkiv/Lviv", shifts, "https://staff.zone3000.net/schedule");
             locations.Add(loc);
             shifts = new List<string>();
@@ -84,10 +84,6 @@ namespace DistributionAPI.Classes
             return locations;
         }
 
-        public Z3KParser()
-        {
-
-        }
         public Z3KParser(int day, int shiftNumber)
         {
             List<Location> locs = SetLocations();
@@ -105,7 +101,7 @@ namespace DistributionAPI.Classes
                     string[] values = test.Split('[');
                     values[1] = values[1].Replace("]", "");
                     int id = Convert.ToInt32(cell.InnerText.Replace("\n", ""));
-                    if ((values[1].Contains("Team") || values[1].Contains("OX") || values[1].Contains("Subject") || values[1].Contains("Flock") || values[1].Contains("Tickets")) && !values[1].Contains("Manager"))
+                    if ((values[1].Contains("Team") || values[1].Contains("OX") || values[1].Contains("Subject") || values[1].Contains("Flock") || values[1].Contains("Tickets") || values[1].Contains("Overshifts")) && !values[1].Contains("Manager"))
                         idRolePairs.Add(id, values[1]);
                 }
             }
@@ -140,33 +136,53 @@ namespace DistributionAPI.Classes
 
         async Task<int> GetActualID(int id)
         {
-            string url = "https://core.zone3000.net/v1/users?q%5Bactive_eq%5D=true&q%5Bprofile_identifier_eq={0}";
-            url = string.Format(url, id.ToString());
-            string pageSource;
-            HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
-            getRequest.CookieContainer = cookies;
-            WebResponse getResponse = await getRequest.GetResponseAsync();
-            using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+            int actual = 0;
+            try
             {
-                pageSource = sr.ReadToEnd();
+                string url = "https://core.zone3000.net/v1/users?q%5Bactive_eq%5D=true&q%5Bprofile_identifier_eq={0}";
+                url = string.Format(url, id.ToString());
+                string pageSource;
+                HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
+                getRequest.CookieContainer = cookies;
+                WebResponse getResponse = await getRequest.GetResponseAsync();
+                using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+                {
+                    pageSource = sr.ReadToEnd();
+                }
+                JObject joResponse = JObject.Parse(pageSource);
+                actual = (int)joResponse["data"][0]["id"];
+                
             }
-            JObject joResponse = JObject.Parse(pageSource);
-            return (int)joResponse["data"][0]["id"];
+            catch(Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return actual;
         }
         public async Task<JObject> GetPersonJson(int id)
         {
+
             int actual_id = await GetActualID(id);
-            string url = string.Format("https://core.zone3000.net/v1/users/{0}", actual_id.ToString());
-            HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
-            getRequest = (HttpWebRequest)WebRequest.Create(url);
-            getRequest.CookieContainer = cookies;
-            WebResponse getResponse = await getRequest.GetResponseAsync();
-            string pageSource = "";
-            using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
-            {
-                pageSource = sr.ReadToEnd();
-            }
-            JObject joResponse = JObject.Parse(pageSource);
+            JObject joResponse = new JObject();
+            if (actual_id > 0)
+                try
+                {
+                    string url = string.Format("https://core.zone3000.net/v1/users/{0}", actual_id.ToString());
+                    HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
+                    getRequest = (HttpWebRequest)WebRequest.Create(url);
+                    getRequest.CookieContainer = cookies;
+                    WebResponse getResponse = await getRequest.GetResponseAsync();
+                    string pageSource = "";
+                    using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+                    {
+                        pageSource = sr.ReadToEnd();
+                    }
+                    joResponse = JObject.Parse(pageSource);
+                }
+                catch (Exception e)
+                {
+                    Console.WriteLine(e.Message);
+                }
             return joResponse;
         }
 
@@ -174,10 +190,13 @@ namespace DistributionAPI.Classes
         {
             //after we get url - get other data by direct userID api call
             JObject joResponse = await GetPersonJson(id);
-            var position = joResponse["data"]["positions"].Where(x => x["position_profile_name"].ToString() == "Customer Support Specialist" || x["position_profile_name"].ToString() == "Subject Matter Expert");
+            if (!joResponse.HasValues)
+                return Task.CompletedTask;
+            var position = joResponse["data"]["positions"].Where(x => x["position_profile_name"].ToString() == "Customer Support Specialist" || x["position_profile_name"].ToString().Contains("Expert"));
             JToken max;
             string level;
             string team;
+            string location = "";
             if (position.Count() > 0)
             {
                 max = position.Last();
@@ -189,8 +208,11 @@ namespace DistributionAPI.Classes
                 }
                 if (role == "OX")
                     team = "OX";
+                else if (role == "Overshifts")
+                    team = "Overshifts";
                 else team = max["org_unit_name"].ToString();
                 level = max["level_name"].ToString();
+                location = max["org_unit_name"].ToString().Substring(0, max["org_unit_name"].ToString().IndexOf(" "));
             }
             else
             {
@@ -200,9 +222,10 @@ namespace DistributionAPI.Classes
 
             string name = joResponse["data"]["full_name_eng"].ToString();
             if (role == "Subject Matter Expert")
-                sme.Add(new Sme(id, name));
+                sme.Add(new Sme(id, name, team, location));
             else
-                cslist.Add(new CS(id, name, role, level, team));
+                cslist.Add(new CS(id, name, role, level, team, location));
+
             return Task.CompletedTask;
         }
     }

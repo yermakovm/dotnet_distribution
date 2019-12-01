@@ -34,13 +34,5 @@ namespace DistributionAPI.Model
             else throw new Exception("whoops...");
         }
 
-        public bool SameLocation(Team t)
-        {
-            if ((name.Contains("Lviv") && t.name.Contains("Lviv")) ||
-            (name.Contains("Dnipro") && t.name.Contains("Dnipro")) ||
-            (name.Contains("Kharkiv") && t.name.Contains("Kharkiv")))
-                return true;
-            else return false;
-        }
     }
 }

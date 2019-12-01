@@ -13,7 +13,7 @@ namespace DistributionAPI.Controllers.Resources
 
         public TeamResource()
         {
-            name = "";
+            name = "undefined";
             teammates = new List<CSResource>();
         }
 

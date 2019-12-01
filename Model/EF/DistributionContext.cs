@@ -12,7 +12,6 @@ namespace DistributionAPI.Model
 
         public DistributionContext(DbContextOptions<DistributionContext> options): base(options)
         {
-            //Database.EnsureDeleted();
             Database.EnsureCreated();
         }
 
