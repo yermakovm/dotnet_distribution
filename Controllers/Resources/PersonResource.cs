@@ -10,6 +10,7 @@ namespace DistributionAPI.Controllers.Resources
         public int z3kid { get; set; }
         public string name { get; set; }
         public string location { get; set; }
+        public string avatar { get; set; }
         public PersonResource()
         {
             z3kid = 0;

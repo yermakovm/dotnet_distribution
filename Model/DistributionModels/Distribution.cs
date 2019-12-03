@@ -12,13 +12,16 @@ namespace DistributionAPI.Model
         public List<Team> raw_schedule;
         public int average_load;
         public List<List<Team>> distributed_teamlist = new List<List<Team>>();
-        private const int load_range = 10;
+        private const int load_range = 5;
         private const int step = 5;
+        private const int lowPriorityValue = 10;
         public Distribution(List<Team> _raw_schedule, List<Sme> _sme)
         {
             raw_schedule = _raw_schedule;
             raw_schedule.Sort();
             smes = _sme;
+            if (raw_schedule.Where(x => x.name == "OX").Any())
+                raw_schedule.Where(x => x.name == "OX").First().total_weight -= lowPriorityValue;
             average_load = GetListWeight(raw_schedule) / smes.Count();
         }
 
@@ -30,7 +33,6 @@ namespace DistributionAPI.Model
 
         public void Build(int[] id = null)
         {
-
             for (int i = 0; i < smes.Count(); i++)
                 smes[i].curLoad = average_load;
             raw_schedule.Sort();

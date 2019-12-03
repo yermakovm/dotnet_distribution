@@ -12,18 +12,20 @@ namespace DistributionAPI.Model
         public string name { get; set; }
         public string team { get; set; }
         public string location { get; set; }
+        public string avatar { get; set; }
         protected Person()
         {
             z3kid = 0;
             name = "noname";
         }
 
-        public Person(int _id, string _name, string _team,string _location)
+        public Person(int _id, string _name, string _team,string _location, string _avatar)
         {
             z3kid = _id;
             name = _name;
             team = _team;
             location = _location;
+            avatar = _avatar;
         }
         public bool SameLocation(string teamname)
         {

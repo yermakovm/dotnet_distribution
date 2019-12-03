@@ -18,7 +18,7 @@ namespace DistributionAPI.Model
             
         }
 
-        public CS(int _id, string _name, string _shift_role, string _level, string _team, string _location) : base(_id, _name, _team, _location)
+        public CS(int _id, string _name, string _shift_role, string _level, string _team, string _location, string _avatar) : base(_id, _name, _team, _location, _avatar)
         {
             shift_role = _shift_role;
             level = _level;

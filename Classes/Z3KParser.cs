@@ -89,7 +89,7 @@ namespace DistributionAPI.Classes
             for (int i = 0; i < locs.Count; i++)
             {
                 string url = "https://staff.zone3000.net/schedule?utf8=✓&department_id={0}&date[year]=" + DateTime.Today.Year + "&date[month]=" + DateTime.Today.Month + "&date[day]=1";
-                url = string.Format(url, locs[i].Id.ToString());
+                url = string.Format(url, locs[i].DepartmentId.ToString());
                 GetSchedule(url);
                 string shift = locs[i].xPaths[shiftNumber - 1].xpath;
                 shift = string.Format(shift, day.ToString());
@@ -251,12 +251,12 @@ namespace DistributionAPI.Classes
                 level = "undefined";
                 team = "undefined";
             }
-
+            string avatar = joResponse["data"]["small_avatar_url"].ToString();
             string name = joResponse["data"]["full_name_eng"].ToString();
             if (role == "Subject Matter Expert")
-                sme.Add(new Sme(id, name, team, location));
+                sme.Add(new Sme(id, name, team, location, avatar));
             else
-                cslist.Add(new CS(id, name, role, level, team, location));
+                cslist.Add(new CS(id, name, role, level, team, location, avatar));
 
             return Task.CompletedTask;
         }

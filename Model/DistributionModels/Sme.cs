@@ -12,11 +12,11 @@ namespace DistributionAPI.Model
         public int curLoad { get; set; }
         public virtual Guid DistributionDataId { get; set; }
         public virtual DistributionData DistributionData { get; set; }
-        public Sme() : base(0, "","","")
+        public Sme() : base(0, "","","","")
         {
 
         }
-        public Sme(int _id, string _name, string team, string _location) : base(_id, _name, team, _location)
+        public Sme(int _id, string _name, string team, string _location, string _avatar) : base(_id, _name, team, _location, _avatar)
         {
             
         }
