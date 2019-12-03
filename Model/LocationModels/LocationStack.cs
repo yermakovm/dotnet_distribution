@@ -7,12 +7,19 @@ using System.ComponentModel.DataAnnotations;
 
 namespace DistributionAPI.Model
 {
-    public class DistributionData : IEntity
+    public class LocationStack: IEntity
     {
         [Key]
         [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        public DateTime time { get; set; }
-        public virtual List<Sme> smes { get; set; }
+        public string Name { get; set; }
+
+        public virtual List<Location> locations { get; set; }
+
+
+        public LocationStack()
+        {
+
+        }
     }
 }

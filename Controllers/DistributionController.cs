@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using AutoMapper;
 using DistributionAPI.Controllers.Resources;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace DistributionAPI.Controllers
 {
@@ -17,13 +18,19 @@ namespace DistributionAPI.Controllers
     public class DistributionController : Controller
     {
         private readonly IRepository<DistributionData> dataRepository;
-
+        private readonly IRepository<LocationStack> locationRepository;
         private readonly IMapper mapper;
-
-        public DistributionController(IRepository<DistributionData> repo, IMapper mapper)
+        IConfiguration config;
+        string username;
+        string password;
+        public DistributionController(IRepository<DistributionData> repo, IRepository<LocationStack> locRepo,IMapper mapper, IConfiguration iconfig)
         {
+            locationRepository = locRepo;
             dataRepository = repo;
             this.mapper = mapper;
+            config = iconfig;
+            username = config.GetSection("z3k").GetSection("username").Value;
+            password = config.GetSection("z3k").GetSection("password").Value;
         }
         //scheduled shift checks 
         [HttpGet("build")]
@@ -31,7 +38,7 @@ namespace DistributionAPI.Controllers
         {
             int day = DateTime.Today.Day;
             int hour = DateTime.Now.Hour;
-            int shift=0;
+            int shift = 0;
             if (hour < 8 && hour >= 0)
             {
                 shift = 1;
@@ -43,9 +50,11 @@ namespace DistributionAPI.Controllers
             }
             else if (hour < 15 && hour >= 7)
                 shift = 2;
-            else if (hour >= 15&& hour < 23)
+            else if (hour >= 15 && hour < 23)
                 shift = 3;
-                Z3KParser parser = new Z3KParser(day, shift);
+            Z3KParser parser = new Z3KParser();
+            parser.LogIn(username, password);
+            parser.ReadSchedule(day, shift);
             await parser.ParseCSs();
             Distribution dist = new Distribution(parser.teams, parser.sme);
             dist.Build();
@@ -62,10 +71,18 @@ namespace DistributionAPI.Controllers
             if (!dataRepository.Filter().Any())
                 return Ok("No data available");
             Guid last;
-             last = dataRepository.Filter().Last().Id;
+            last = dataRepository.Filter().Last().Id;
             var smeDistribution = dataRepository.Filter().Last().smes.ToList();
 
             return Ok(mapper.Map<List<Sme>, List<SmeResource>>(smeDistribution));
+        }
+
+        [HttpPost("location")]
+        public async Task AddLocation([FromBody] LocationStack newLocationStack)
+        {
+            locationRepository.Create(newLocationStack);
+            await locationRepository.SaveChanges();
+
         }
 
         [HttpGet("synctime")]
@@ -73,7 +90,14 @@ namespace DistributionAPI.Controllers
         {
             return Ok(DateTime.Now.Minute - dataRepository.Filter().Last().time.Minute);
         }
-
+        [HttpGet("department")]
+        public async Task GetUserDepartment([FromQuery] string name)
+        {
+            Z3KParser parser = new Z3KParser();
+            parser.LogIn(username,password);
+            var json = await parser.GetPersonJson(name);
+            int departmentId = (int)json["data"]["profile"]["legacy_department_id"];
+        }
         [HttpDelete("{id}")]
         public async Task RemoveSMEAndRebuild(int id)
         {

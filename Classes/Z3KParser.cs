@@ -18,8 +18,6 @@ namespace DistributionAPI.Classes
         //raw html data
         string schedule;
         CookieContainer cookies;
-        const string user = "mikhailermakov";
-        const string pass = "81414922Tor!";
 
         // /schedule URL request data
         Dictionary<int, string> idRolePairs = new Dictionary<int, string>();
@@ -27,7 +25,7 @@ namespace DistributionAPI.Classes
         public List<Sme> sme = new List<Sme>();
         public List<Team> teams = new List<Team>();
 
-        public void LogIn()
+        public void LogIn(string user, string pass)
         {
             string formUrl = "https://core.zone3000.net/staff_sign_in";
             var formParams = new
@@ -53,7 +51,6 @@ namespace DistributionAPI.Classes
 
         public void GetSchedule(string url)
         {
-            LogIn();
             string pageSource;
             HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
             getRequest.CookieContainer = cookies;
@@ -68,30 +65,33 @@ namespace DistributionAPI.Classes
         public List<Location> SetLocations()
         {
             List<Location> locations = new List<Location>();
-            List<string> shifts = new List<string>();
-            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 0 and position() < 31][text()>2]");
-            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 31 and position() < 94][text()>2]");
-            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 158 and position() < 213][text()>2]");
-            Location loc = new Location("Kharkiv/Lviv", shifts, "https://staff.zone3000.net/schedule");
+            List<xPath> shifts = new List<xPath>();
+
+            shifts.Add(new xPath("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][count(preceding-sibling::li[@class='left_part first'])=1][text()>2]"));
+            shifts.Add(new xPath("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][count(preceding-sibling::li[@class='left_part first'])=3][text()>2]"));
+            shifts.Add(new xPath("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][count(preceding-sibling::li[@class='left_part first'])=5][text()>2]"));
+            Location loc = new Location("Kharkiv/Lviv", shifts, 4);
             locations.Add(loc);
-            shifts = new List<string>();
-            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 0 and position() < 13][text()>2]");
-            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 13 and position() < 30][text()>2]");
-            shifts.Add("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][position() >= 47 and position() < 66][text()>2]");
-            string url = "https://staff.zone3000.net/schedule?utf8=✓&department_id=53&date[year]=" + DateTime.Today.Year + "&date[month]=" + DateTime.Today.Month + "&date[day]=1";
-            loc = new Location("Dnipro", shifts, url);
+            shifts = new List<xPath>();
+            shifts.Add(new xPath("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][count(preceding-sibling::li[@class='left_part first'])=1][text()>2]"));
+            shifts.Add(new xPath("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][count(preceding-sibling::li[@class='left_part first'])=3][text()>2]"));
+            shifts.Add(new xPath("//li[@class='cell' and substring(@id, string-length(@id) - string-length('_{0}') +1) = '_{0}'][count(preceding-sibling::li[@class='left_part first'])=5][text()>2]"));
+            
+            loc = new Location("Dnipro", shifts, 53);
             locations.Add(loc);
             return locations;
         }
 
-        public Z3KParser(int day, int shiftNumber)
+        public void ReadSchedule(int day, int shiftNumber)
         {
             List<Location> locs = SetLocations();
 
             for (int i = 0; i < locs.Count; i++)
             {
-                GetSchedule(locs[i].url);
-                string shift = locs[i].shifts[shiftNumber - 1];
+                string url = "https://staff.zone3000.net/schedule?utf8=✓&department_id={0}&date[year]=" + DateTime.Today.Year + "&date[month]=" + DateTime.Today.Month + "&date[day]=1";
+                url = string.Format(url, locs[i].Id.ToString());
+                GetSchedule(url);
+                string shift = locs[i].xPaths[shiftNumber - 1].xpath;
                 shift = string.Format(shift, day.ToString());
                 HtmlDocument doc = new HtmlDocument();
                 doc.LoadHtml(schedule);
@@ -106,6 +106,7 @@ namespace DistributionAPI.Classes
                 }
             }
         }
+
 
         public void SplitTeams()
         {
@@ -134,14 +135,15 @@ namespace DistributionAPI.Classes
             SplitTeams();
         }
 
-        async Task<int> GetActualID(int id)
+        public async Task<int> GetActualID(int id)
         {
             int actual = 0;
+
+            string url = "https://core.zone3000.net/v1/users?q%5Bactive_eq%5D=true&q%5Bprofile_identifier_eq={0}";
+            url = string.Format(url, id.ToString());
+            string pageSource;
             try
             {
-                string url = "https://core.zone3000.net/v1/users?q%5Bactive_eq%5D=true&q%5Bprofile_identifier_eq={0}";
-                url = string.Format(url, id.ToString());
-                string pageSource;
                 HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
                 getRequest.CookieContainer = cookies;
                 WebResponse getResponse = await getRequest.GetResponseAsync();
@@ -151,18 +153,48 @@ namespace DistributionAPI.Classes
                 }
                 JObject joResponse = JObject.Parse(pageSource);
                 actual = (int)joResponse["data"][0]["id"];
-                
+
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e.Message);
             }
             return actual;
         }
-        public async Task<JObject> GetPersonJson(int id)
+        public async Task<int> GetActualID(string name)
         {
+            int actual = 0;
 
-            int actual_id = await GetActualID(id);
+            string url = "https://core.zone3000.net/v1/users?q[employment_status_eq]=2&q[full_name_or_full_name_eng_cont]={0}";
+            url = string.Format(url, name);
+            string pageSource;
+            try
+            {
+                HttpWebRequest getRequest = (HttpWebRequest)WebRequest.Create(url);
+                getRequest.CookieContainer = cookies;
+                WebResponse getResponse = await getRequest.GetResponseAsync();
+                using (StreamReader sr = new StreamReader(getResponse.GetResponseStream()))
+                {
+                    pageSource = sr.ReadToEnd();
+                }
+                JObject joResponse = JObject.Parse(pageSource);
+                actual = (int)joResponse["data"][0]["id"];
+
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+            return actual;
+        }
+        public async Task<JObject> GetPersonJson(object id)
+        {
+            int actual_id = 0;
+            if (id.GetType()==typeof(int))
+                actual_id = await GetActualID((int)id);
+            else if (id.GetType() == typeof(string))
+                actual_id = await GetActualID((string)id);
+            else throw new ArgumentException();
             JObject joResponse = new JObject();
             if (actual_id > 0)
                 try

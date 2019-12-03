@@ -30,9 +30,11 @@ namespace DistributionAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IRepository<DistributionData>, Repository<DistributionData>>();
-            if(Environment.OSVersion.VersionString.Contains("Windows"))
+            services.AddScoped<IRepository<LocationStack>, Repository<LocationStack>>();
+            if (Environment.OSVersion.VersionString.Contains("Windows"))
                 services.AddDbContext<DistributionContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")).UseLazyLoadingProxies());
             else services.AddDbContext<DistributionContext>(options => options.UseMySql(Configuration.GetConnectionString("Unix")).UseLazyLoadingProxies());
+
             services.AddCors();
             services.AddAutoMapper(typeof(Startup));
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
