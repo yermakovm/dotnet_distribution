@@ -8,32 +8,32 @@ namespace DistributionAPI.Model
         [Key]
         [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        public int z3kid { get; set; }
-        public string name { get; set; }
-        public string team { get; set; }
-        public string location { get; set; }
-        public string avatar { get; set; }
+        public int Z3kId { get; set; }
+        public string Name { get; set; }
+        public string Team { get; set; }
+        public string Location { get; set; }
+        public string Avatar { get; set; }
         protected Person()
         {
-            z3kid = 0;
-            name = "noname";
+            Z3kId = 0;
+            Name = "noname";
         }
 
-        public Person(int _id, string _name, string _team,string _location, string _avatar)
+        public Person(int id, string name, string team,string location, string avatar)
         {
-            z3kid = _id;
-            name = _name;
-            team = _team;
-            location = _location;
-            avatar = _avatar;
+            Z3kId = id;
+            Name = name;
+            Team = team;
+            Location = location;
+            Avatar = avatar;
         }
         public bool SameLocation(string teamname)
         {
             string teamlocation;
-            if (teamname != "OX" && teamname!="Overshifts")
+            if (teamname != null&&teamname != "OX" && teamname!="Overshifts")
             {
                 teamlocation = teamname.Substring(0, teamname.ToString().IndexOf(" "));
-                return this.location == teamlocation;
+                return this.Location == teamlocation;
             }
             else return false;
         }

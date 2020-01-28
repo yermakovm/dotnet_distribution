@@ -8,58 +8,58 @@ namespace DistributionAPI.Model
 {
     public class Repository<TEntity> : IRepository<TEntity> where TEntity : class, IEntity
     {
-        private readonly DistributionContext _context;
+        private readonly DistributionContext context;
 
         public Repository(DistributionContext dbContext)
         {
-            _context = dbContext;
+            context = dbContext;
         }
 
         public async void Create(TEntity entity)
         {
-            await _context.Set<TEntity>().AddAsync(entity);
+            await context.Set<TEntity>().AddAsync(entity);
         }
 
         public void Delete(TEntity entity)
         {
-            _context.Set<TEntity>().Remove(entity);
+            context.Set<TEntity>().Remove(entity);
         }
 
         public void Delete()
         {
-            _context.Set<TEntity>().RemoveRange();
+            context.Set<TEntity>().RemoveRange();
         }
 
         public void Delete(Guid id)
         {
-            var entityToDelete = _context.Set<TEntity>().FirstOrDefault(e => e.Id == id);
+            var entityToDelete = context.Set<TEntity>().FirstOrDefault(e => e.Id == id);
             if (entityToDelete != null)
             {
-                _context.Set<TEntity>().Remove(entityToDelete);
+                context.Set<TEntity>().Remove(entityToDelete);
             }
         }
 
         public void Edit(TEntity entity)
         {
-            var editedEntity = _context.Set<TEntity>().FirstOrDefault(e => e.Id == entity.Id);
+            var editedEntity = context.Set<TEntity>().FirstOrDefault(e => e.Id == entity.Id);
             editedEntity = entity;
         }
 
         public TEntity GetById(Guid id)
         {
-            return _context.Set<TEntity>().FirstOrDefault(e => e.Id == id);
+            return context.Set<TEntity>().FirstOrDefault(e => e.Id == id);
         }
 
         public IEnumerable<TEntity> Filter()
         {
-            return _context.Set<TEntity>();
+            return context.Set<TEntity>();
         }
 
         public IEnumerable<TEntity> Filter(Func<TEntity, bool> predicate)
         {
-            return _context.Set<TEntity>().Where(predicate);
+            return context.Set<TEntity>().Where(predicate);
         }
 
-        public async Task SaveChanges() => await _context.SaveChangesAsync();
+        public async Task SaveChanges() => await context.SaveChangesAsync();
     }
 }

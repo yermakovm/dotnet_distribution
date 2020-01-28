@@ -1,20 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using AutoMapper;
 using DistributionAPI.Model;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Hosting;
-using Microsoft.EntityFrameworkCore.SqlServer;
+using Newtonsoft.Json;
+
 namespace DistributionAPI
 {
     public class Startup
@@ -30,14 +25,16 @@ namespace DistributionAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScoped<IRepository<DistributionData>, Repository<DistributionData>>();
-            services.AddScoped<IRepository<LocationStack>, Repository<LocationStack>>();
+            services.AddScoped<IRepository<Department>, Repository<Department>>();
             if (Environment.OSVersion.VersionString.Contains("Windows"))
                 services.AddDbContext<DistributionContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")).UseLazyLoadingProxies());
             else services.AddDbContext<DistributionContext>(options => options.UseMySql(Configuration.GetConnectionString("Unix")).UseLazyLoadingProxies());
 
             services.AddCors();
             services.AddAutoMapper(typeof(Startup));
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_3_0);
+            services.AddMvc(option => option.EnableEndpointRouting = false)
+                .SetCompatibilityVersion(CompatibilityVersion.Version_3_0)
+                .AddNewtonsoftJson(opt => opt.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore);
             services.AddRazorPages();                   
         }
 

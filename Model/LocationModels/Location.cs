@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
@@ -13,19 +11,18 @@ namespace DistributionAPI.Model
         [Key]
         [DatabaseGeneratedAttribute(DatabaseGeneratedOption.Identity)]
         public Guid Id { get; set; }
-        public int DepartmentId { get; set; }
-        public string city { get; set; }
-        public virtual List<xPath> xPaths { get; set; }
+        public virtual int Z3kId { get; set; }
+        public string City { get; set; }
+        public virtual List<ShiftPeriod> XPaths { get; set; }
 
-        public virtual Guid LocationStackId { get; set; }
-        public virtual LocationStack LocationStack { get; set; }
+        public virtual Department Department { get; set; }
 
         public Location() { }
-        public Location(string _city, List<xPath> _shifts, int _id)
+        public Location(string city, List<ShiftPeriod> shifts, int id)
         {
-            city = _city;
-            xPaths = _shifts;
-            DepartmentId = _id;
+            City = city;
+            XPaths = shifts;
+            Z3kId = id;
         }
     }
 }

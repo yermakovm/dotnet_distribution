@@ -1,14 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+
 
 namespace DistributionAPI.Controllers.Resources
 {
     public class SmeResource : PersonResource
     {
-        public int load { get; set; }
-        public List<TeamResource> teams { get; set; } = new List<TeamResource>();
+        public int Load { get; set; }
+        public List<TeamResource> Teams { get; set; } = new List<TeamResource>();
 
         public SmeResource() : base()
         {

@@ -15,13 +15,13 @@ appsettings.json
 *.suo
 *.user
 *.userosscache
-*.sln.docstates
+*.sln.doCSRepresentativetates
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
 # Mono auto generated files
-mono_crash.*
+monocrash.*
 
 # Build results
 [Dd]ebug/
@@ -71,9 +71,9 @@ artifacts/
 StyleCopReport.xml
 
 # Files built by Visual Studio
-*_i.c
-*_p.c
-*_h.h
+*i.c
+*p.c
+*h.h
 *.ilk
 *.meta
 *.obj
@@ -89,8 +89,8 @@ StyleCopReport.xml
 *.tli
 *.tlh
 *.tmp
-*.tmp_proj
-*_wpftmp.csproj
+*.tmpproj
+*wpftmp.CSRepresentativeproj
 *.log
 *.vspscc
 *.vssscc
@@ -100,7 +100,7 @@ StyleCopReport.xml
 *.scc
 
 # Chutzpah Test files
-_Chutzpah*
+Chutzpah*
 
 # Visual C++ cache files
 ipch/
@@ -129,7 +129,7 @@ $tf/
 *.gpState
 
 # ReSharper is a .NET coding add-in
-_ReSharper*/
+ReSharper*/
 *.[Rr]e[Ss]harper
 *.DotSettings.user
 
@@ -137,7 +137,7 @@ _ReSharper*/
 .JustCode
 
 # TeamCity is a build add-in
-_TeamCity*
+TeamCity*
 
 # DotCover is a Code Coverage Tool
 *.dotCover
@@ -151,9 +151,9 @@ _TeamCity*
 *.coveragexml
 
 # NCrunch
-_NCrunch_*
+NCrunch*
 .*crunch*.local.xml
-nCrunchTemp_*
+nCrunchTemp*
 
 # MightyMoose
 *.mm.*
@@ -206,8 +206,8 @@ PublishScripts/
 *.nuget.targets
 
 # Microsoft Azure Build Output
-csx/
-*.build.csdef
+CSRepresentativex/
+*.build.CSRepresentativedef
 
 # Microsoft Azure Emulator
 ecf/
@@ -217,7 +217,7 @@ rcf/
 AppPackages/
 BundleArtifacts/
 Package.StoreAssociation.xml
-_pkginfo.txt
+pkginfo.txt
 *.appx
 *.appxbundle
 *.appxupload
@@ -237,23 +237,23 @@ ClientBin/
 *.jfm
 *.pfx
 *.publishsettings
-orleans.codegen.cs
+orleans.codegen.CSRepresentative
 
 # Including strong name files can present a security risk
 # (https://github.com/github/gitignore/pull/2483#issue-259490424)
 #*.snk
 
-# Since there are multiple workflows, uncomment next line to ignore bower_components
+# Since there are multiple workflows, uncomment next line to ignore bowercomponents
 # (https://github.com/github/gitignore/pull/1529#issuecomment-104372622)
-#bower_components/
+#bowercomponents/
 
 # RIA/Silverlight projects
-Generated_Code/
+GeneratedCode/
 
 # Backup & report files from converting an old project file
 # to a newer Visual Studio version. Backup files are not needed,
 # because we have git ;-)
-_UpgradeReport_Files/
+UpgradeReportFiles/
 Backup*/
 UpgradeLog*.XML
 UpgradeLog*.htm
@@ -268,7 +268,7 @@ ServiceFabricBackup/
 # Business Intelligence projects
 *.rdl.data
 *.bim.layout
-*.bim_*.settings
+*.bim*.settings
 *.rptproj.rsuser
 *- [Bb]ackup.rdl
 *- [Bb]ackup ([0-9]).rdl
@@ -281,8 +281,8 @@ FakesAssemblies/
 *.GhostDoc.xml
 
 # Node.js Tools for Visual Studio
-.ntvs_analysis.dat
-node_modules/
+.ntvsanalysis.dat
+nodemodules/
 
 # Visual Studio 6 build log
 *.plg
@@ -299,7 +299,7 @@ node_modules/
 **/*.DesktopClient/ModelManifest.xml
 **/*.Server/GeneratedArtifacts
 **/*.Server/ModelManifest.xml
-_Pvt_Extensions
+PvtExtensions
 
 # Paket dependency manager
 .paket/paket.exe
@@ -312,7 +312,7 @@ paket-files/
 .cr/personal
 
 # Python Tools for Visual Studio (PTVS)
-__pycache__/
+pycache/
 *.pyc
 
 # Cake - Uncomment if you are using it
@@ -326,15 +326,15 @@ __pycache__/
 *.jmconfig
 
 # BizTalk build output
-*.btp.cs
-*.btm.cs
-*.odx.cs
-*.xsd.cs
+*.btp.CSRepresentative
+*.btm.CSRepresentative
+*.odx.CSRepresentative
+*.xsd.CSRepresentative
 
 # OpenCover UI analysis results
 OpenCover/
 
-# Azure Stream Analytics local run output
+# Azure Stream AnalytiCSRepresentative local run output
 ASALocalRun/
 
 # MSBuild Binary and Structured Log

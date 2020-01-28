@@ -13,10 +13,15 @@ namespace DistributionAPI.Mapping
         public MappingProfile()
         {
             CreateMap<Person, PersonResource>();
-            CreateMap<CS, CSResource>().IncludeBase<Person, PersonResource>();
+            CreateMap<CSRepresentative, CSRepresentativeResource>().IncludeBase<Person, PersonResource>();
             CreateMap<Sme, SmeResource>().IncludeBase<Person, PersonResource>();
             CreateMap<Distribution, DistributionResource>();
             CreateMap<Team, TeamResource>();
+            CreateMap<Department, DepartmentResource>();
+            CreateMap<Location, LocationResource>();
+            CreateMap<ShiftPeriod, ShiftPeriodResource>(); ;
+            CreateMap<DistributionData, DistributionDataResource>();
+
         }
     }
 }

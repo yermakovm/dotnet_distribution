@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace DistributionAPI.Model
 {
@@ -9,12 +6,12 @@ namespace DistributionAPI.Model
     {
         public bool Equals(Team a, Team b)
         {
-            bool e = a.name.Equals(b.name);
+            bool e = a.Name.Equals(b.Name);
             return e;
         }
         public int GetHashCode(Team t)
         {
-            return t.name.GetHashCode();
+            return t.Name.GetHashCode();
         }
     }
 }

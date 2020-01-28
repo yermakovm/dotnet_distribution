@@ -1,37 +1,48 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
 using System;
 namespace DistributionAPI.Model
 {
-    [Table("SMEs")]
+    [Table("SmeList")]
     public class Sme : Person, IComparable<Sme>
     {
-        public int load { get; set; }
-        public virtual List<Team> teams { get; set; } = new List<Team>();
-        public int curLoad { get; set; }
+        public int Load { get; set; }
+        public virtual List<Team> Teams { get; set; } = new List<Team>();
+        public int CurLoad { get; set; }
         public virtual Guid DistributionDataId { get; set; }
         public virtual DistributionData DistributionData { get; set; }
         public Sme() : base(0, "","","","")
         {
 
         }
-        public Sme(int _id, string _name, string team, string _location, string _avatar) : base(_id, _name, team, _location, _avatar)
+        public Sme(int id, string name, string team, string location, string avatar) : base(id, name, team, location, avatar)
         {
             
         }
         public void GetLoad()
         {
-            foreach (var team in teams)
+            foreach (var team in Teams)
             {
-                load+=team.total_weight;
+                Load+=team.Totalweight;
             }
         }
         public int CompareTo(Sme compared)
         {
-            int result = (load >= compared.load) ?  1 : -1; ;
+            int result = (Load >= compared.Load) ?  1 : -1; ;
             
             return result;
+        }
+        public void AddTeam(Team t)
+        {
+            this.Teams.Add(t);
+            this.CurLoad -= t.Totalweight;
+            this.Load += t.Totalweight;
+        }
+        public void RemoveTeam(Team t)
+        {
+            this.CurLoad += t.Totalweight;
+            this.Load -= t.Totalweight;
+            this.Teams.Remove(t);
         }
     }
 }

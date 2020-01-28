@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 namespace DistributionAPI.Model
 {
@@ -9,28 +8,28 @@ namespace DistributionAPI.Model
     {
         [Key]
         public Guid Id { get; set; }
-        public string name { get; set; }
-        public virtual List<CS> teammates { get; set; }
-        public int total_weight { get; set; }
+        public string Name { get; set; }
+        public virtual List<CSRepresentative> Teammates { get; set; }
+        public int Totalweight { get; set; }
 
         public Guid SmeId { get; set; }
         public virtual Sme Sme { get; set; }
         public Team()
         {
-            name = "";
-            teammates = new List<CS>();
+            Name = "";
+            Teammates = new List<CSRepresentative>();
         }
 
-        public Team(string _name, List<CS> guys)
+        public Team(string name, List<CSRepresentative> guys)
         {
-            name = _name;
-            teammates = guys;
-            total_weight = teammates.Sum(mate => mate.weight);
+            Name = name;
+            Teammates = guys;
+            Totalweight = Teammates.Sum(mate => mate.Weight);
         }
 
         public int CompareTo(Team t)
         {
-            if (t != null) return t.total_weight.CompareTo(this.total_weight);
+            if (t != null) return t.Totalweight.CompareTo(this.Totalweight);
             else throw new Exception("whoops...");
         }
 

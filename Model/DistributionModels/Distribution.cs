@@ -1,109 +1,113 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
 namespace DistributionAPI.Model
 {
-
-
     public class Distribution
     {
-        public List<Sme> smes;
-        public List<Team> raw_schedule;
-        public int average_load;
-        public List<List<Team>> distributed_teamlist = new List<List<Team>>();
-        private const int load_range = 5;
+        private const int loadRange = 5;
+
         private const int step = 5;
-        private const int lowPriorityValue = 10;
-        public Distribution(List<Team> _raw_schedule, List<Sme> _sme)
+
+        //tocheck
+        private const int lowPriorityValue = 0;
+        private readonly int averageLoad;
+        public List<Team> ScheduleCellsList;
+        public List<Sme> SmeList;
+
+        public Distribution(List<Team> scheduleCellsList, List<Sme> sme)
         {
-            raw_schedule = _raw_schedule;
-            raw_schedule.Sort();
-            smes = _sme;
-            if (raw_schedule.Where(x => x.name == "OX").Any())
-                raw_schedule.Where(x => x.name == "OX").First().total_weight -= lowPriorityValue;
-            average_load = GetListWeight(raw_schedule) / smes.Count();
+            ScheduleCellsList = scheduleCellsList;
+            ScheduleCellsList.Sort();
+            SmeList = sme;
+            if (ScheduleCellsList.Where(x => x.Name == "OX").Any())
+                ScheduleCellsList.Where(x => x.Name == "OX").First().Totalweight -= lowPriorityValue;
+            averageLoad = GetListWeight(ScheduleCellsList) / SmeList.Count();
         }
 
         public int GetListWeight(List<Team> team)
         {
-            return team.Sum(y => y.total_weight);
+            return team.Sum(y => y.Totalweight);
         }
 
-
-        public void Build(int[] id = null)
+        public void Build()
         {
-            for (int i = 0; i < smes.Count(); i++)
-                smes[i].curLoad = average_load;
-            raw_schedule.Sort();
+            for (var i = 0; i < SmeList.Count(); i++)
+                SmeList[i].CurLoad = averageLoad;
 
-            List<Team> extra = AssignByLocation();
-            List<Team> removed = new List<Team>();
+            var extra = AssignSmeListTeam(ScheduleCellsList);
+            ScheduleCellsList.Sort();
+
+            extra = AssignByLocation(extra);
+            var removed = new List<Team>();
             RemoveExtra(removed);
             extra.AddRange(removed);
-            smes.Sort();
+            SmeList.Sort();
             AssignExtra(extra);
+        }
+
+        private List<Team> AssignSmeListTeam(List<Team> temp)
+        {
+            for (var i = 0; i < SmeList.Count(); i++)
+            for (var j = 0; j < temp.Count(); j++)
+                if (SmeList[i].Team == temp[j].Name)
+                {
+                    SmeList[i].AddTeam(ScheduleCellsList[j]);
+                    temp.Remove(ScheduleCellsList[j]);
+                }
+
+            return temp;
         }
 
         private void AssignExtra(List<Team> extra)
         {
-            List<Team> temp = extra.ToList();
+            var temp = extra.ToList();
 
-            for (int i = 0; i < smes.Count(); i++)
-                for (int j = 0; j < extra.Count(); j++)
+            for (var i = 0; i < SmeList.Count(); i++)
+            for (var j = 0; j < extra.Count(); j++)
+            {
+                var notAssigned = temp.Contains(extra[j]);
+                if (SmeList[i].CurLoad >= extra[j].Totalweight && notAssigned)
                 {
-                    bool notAssigned = temp.Contains(extra[j]);
-                    if (smes[i].curLoad >= extra[j].total_weight && notAssigned)
-                    {
-                        smes[i].teams.Add(extra[j]);
-                        smes[i].curLoad -= extra[j].total_weight;
-                        smes[i].load += extra[j].total_weight;
-                        temp.Remove(extra[j]);
-                    }
+                    SmeList[i].AddTeam(extra[j]);
+                    temp.Remove(extra[j]);
                 }
+            }
+
             if (temp.Any())
             {
-                smes.ForEach(x => x.curLoad += step);
+                SmeList.ForEach(x => x.CurLoad += step);
                 AssignExtra(temp);
             }
         }
 
 
-        private List<Team> AssignByLocation()
+        private List<Team> AssignByLocation(List<Team> temp)
         {
-            List<Team> temp = raw_schedule.ToList();
-
-            for (int i = 0; i < smes.Count(); i++)
-                for (int j = 0; j < raw_schedule.Count(); j++)
+            for (var i = 0; i < SmeList.Count(); i++)
+            for (var j = 0; j < ScheduleCellsList.Count(); j++)
+            {
+                var notAssigned = temp.Contains(ScheduleCellsList[j]);
+                if (SmeList[i].SameLocation(ScheduleCellsList[j].Name) && notAssigned)
                 {
-                    bool notAssigned = temp.Contains(raw_schedule[j]);
-                    if ((smes[i].SameLocation(raw_schedule[j].name)) && notAssigned)
-                    {
-                        smes[i].teams.Add(raw_schedule[j]);
-                        smes[i].curLoad -= raw_schedule[j].total_weight;
-                        smes[i].load += raw_schedule[j].total_weight;
-                        temp.Remove(raw_schedule[j]);
-                    }
+                    SmeList[i].AddTeam(ScheduleCellsList[j]);
+                    temp.Remove(ScheduleCellsList[j]);
                 }
+            }
+
             return temp;
         }
 
         private void RemoveExtra(List<Team> extras)
         {
-            while (smes.Where(x=>x.load - load_range > average_load).Any())
-            {
-                for (int i = 0; i < smes.Count(); i++)
-                {
-                    if (smes[i].load - load_range > average_load)
+            while (SmeList.Where(x => x.Load - loadRange > averageLoad).Any())
+                for (var i = 0; i < SmeList.Count(); i++)
+                    if (SmeList[i].Load - loadRange > averageLoad)
                     {
-                        var min = smes[i].teams.Last();
+                        var min = SmeList[i].Teams.Last();
                         extras.Add(min);
-                        smes[i].curLoad += min.total_weight;
-                        smes[i].load -= min.total_weight;
-                        smes[i].teams.Remove(min);
+                        SmeList[i].RemoveTeam(min);
                     }
-                }
-            }
         }
     }
 }

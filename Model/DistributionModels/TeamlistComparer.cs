@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 
 namespace DistributionAPI.Model
 {
@@ -15,7 +12,7 @@ namespace DistributionAPI.Model
             {
                 for (int i = 0; i < a.Count; i++)
                 {
-                    if (a[i].name != b[i].name)
+                    if (a[i].Name != b[i].Name)
                     {
                         e = false;
                         break;

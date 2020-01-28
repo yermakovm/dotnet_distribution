@@ -1,15 +1,13 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using DistributionAPI.Model;
-using DistributionAPI.Classes;
+using DistributionAPI.scheduleHelper;
 using System;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.Linq;
 using System.Collections.Generic;
 using AutoMapper;
 using DistributionAPI.Controllers.Resources;
-using Microsoft.EntityFrameworkCore;
+using DistributionAPI.ScheduleHelper;
 using Microsoft.Extensions.Configuration;
 
 namespace DistributionAPI.Controllers
@@ -18,14 +16,15 @@ namespace DistributionAPI.Controllers
     public class DistributionController : Controller
     {
         private readonly IRepository<DistributionData> dataRepository;
-        private readonly IRepository<LocationStack> locationRepository;
+        private readonly IRepository<Department> _locationRepository;
         private readonly IMapper mapper;
-        IConfiguration config;
-        string username;
-        string password;
-        public DistributionController(IRepository<DistributionData> repo, IRepository<LocationStack> locRepo,IMapper mapper, IConfiguration iconfig)
+        readonly IConfiguration config;
+        readonly string username;
+        readonly string password;
+        Z3KParser parser = new Z3KParser();
+        public DistributionController(IRepository<DistributionData> repo, IRepository<Department> locRepo, IMapper mapper, IConfiguration iconfig)
         {
-            locationRepository = locRepo;
+            _locationRepository = locRepo;
             dataRepository = repo;
             this.mapper = mapper;
             config = iconfig;
@@ -34,123 +33,147 @@ namespace DistributionAPI.Controllers
         }
         //scheduled shift checks 
         [HttpGet("build")]
-        public async Task BuildDistribution()
+        public async Task<string> BuildDistribution([FromQuery] string dep)
         {
-            int day = DateTime.Today.Day;
-            int hour = DateTime.Now.Hour;
-            int shift = 0;
-            if (hour < 8 && hour >= 0)
-            {
-                shift = 1;
-            }
-            else if (hour >= 23)
-            {
-                shift = 1;
-                day = DateTime.Today.AddDays(1).Day;
-            }
-            else if (hour < 15 && hour >= 7)
-                shift = 2;
-            else if (hour >= 15 && hour < 23)
-                shift = 3;
-            Z3KParser parser = new Z3KParser();
+            if (dep == null)
+                return "Error: no department name received";
+
             parser.LogIn(username, password);
-            parser.ReadSchedule(day, shift);
+            Department department;
+            if (!_locationRepository.Filter().Where(x => x.Name.ToLower() == dep.ToLower()).Any())
+            {
+                DefaultValuesFiller filler = new DefaultValuesFiller(_locationRepository);
+                await filler.SetDefaultDepartmentLocations();
+                await filler.SetDefaultDepartmentPositions();
+            }
+            department = _locationRepository.Filter().Where(x => x.Name.ToLower() == dep.ToLower()).Last();
+            parser.ReadSchedule(department);
             await parser.ParseCSs();
-            Distribution dist = new Distribution(parser.teams, parser.sme);
+            Distribution dist = new Distribution(parser.GetTeams(), parser.SmeList);
+
+
             dist.Build();
-            DistributionData data = new DistributionData();
-            data.smes = dist.smes;
-            data.time = DateTime.Now;
+            var time = parser.GetShiftTime();
+            DistributionData data = new DistributionData
+            {
+                SmeList = dist.SmeList,
+                Time = DateTime.Now,
+                period=time.Item2,
+                periodName = time.Item1,
+                Department=department
+            };
             dataRepository.Create(data);
             await dataRepository.SaveChanges();
+            return "Distribution complete";
         }
-        //return json from db
+
         [HttpGet()]
-        public ActionResult GetDistribution()
+        public ActionResult GetDistribution([FromQuery] string dep)
         {
+            if (dep == null)
+                return Ok("Error: no department name received");
+
             if (!dataRepository.Filter().Any())
                 return Ok("No data available");
-            Guid last;
-            last = dataRepository.Filter().Last().Id;
-            var smeDistribution = dataRepository.Filter().Last().smes.ToList();
+            var last = dataRepository.Filter().ToList().Where(x => x.Department.Name.ToLower() == dep.ToLower()).Last().SmeList;
 
-            return Ok(mapper.Map<List<Sme>, List<SmeResource>>(smeDistribution));
+            return Ok(mapper.Map<List<Sme>, List<SmeResource>>(last));
         }
-
-        [HttpPost("location")]
-        public async Task AddLocation([FromBody] LocationStack newLocationStack)
+        [HttpGet("info")]
+        public ActionResult GetDistributionInfo([FromQuery] string dep)
         {
-            locationRepository.Create(newLocationStack);
-            await locationRepository.SaveChanges();
+            if (dep == null)
+                return Ok("Error: no department name received");
+
+            if (!dataRepository.Filter().Any())
+                return Ok("No data available");
+            var last = dataRepository.Filter().ToList().Where(x => x.Department.Name.ToLower() == dep.ToLower()).Last();
+
+            return Ok(mapper.Map<DistributionData, DistributionDataResource>(last));
+        }
+        [HttpGet("shift")]
+        public ActionResult GetShiftInfo([FromQuery] string dep)
+        {
+            if (dep == null)
+                return Ok("Error: no department name received");
+
+            if (!dataRepository.Filter().Any())
+                return Ok("No data available");
+            var last = dataRepository.Filter().ToList().Where(x => x.Department.Name.ToLower() == dep.ToLower()).Last();
+            return Ok(mapper.Map<DistributionData, DistributionResource>(last));
+        }
+        [HttpPost("location")]
+        public async Task AddLocation([FromBody] Department newLocationStack)
+        {
+            _locationRepository.Create(newLocationStack);
+            await _locationRepository.SaveChanges();
 
         }
-
+        [HttpGet("positions")]
+        public ActionResult GetPositions([FromQuery] string dep)
+        {
+            Dictionary<string,int> PositionCountList = new Dictionary<string, int>(new []
+            {
+                new KeyValuePair<string, int>("SME",0),
+                new KeyValuePair<string, int>("CS",0),
+                new KeyValuePair<string, int>("RR/TR",0),
+                new KeyValuePair<string, int>("OX",0),
+            });
+            var last = dataRepository.Filter().ToList().Where(x => x.Department.Name.ToLower() == dep.ToLower()).Last();
+            foreach (var sme in last.SmeList)
+            {
+                ++PositionCountList["SME"];
+                foreach (var team in sme.Teams)
+                {
+                    foreach (var cs in team.Teammates)
+                    {
+                        if (cs.ShiftRole.Contains("Team"))
+                            ++PositionCountList["CS"];
+                        else if (cs.ShiftRole.Contains("Flock")|| cs.ShiftRole.Contains("Ticket"))
+                            ++PositionCountList["RR/TR"];
+                        else if(cs.ShiftRole.Contains("OX"))
+                            ++PositionCountList["OX"];
+                    }
+                }
+            }
+            return Ok(PositionCountList);
+        }
         [HttpGet("synctime")]
         public ActionResult GetSyncTime()
         {
-            return Ok(DateTime.Now.Minute - dataRepository.Filter().Last().time.Minute);
+            return Ok(DateTime.Now.Minute - dataRepository.Filter().Last().Time.Minute);
         }
         [HttpGet("department")]
         public async Task GetUserDepartment([FromQuery] string name)
         {
             Z3KParser parser = new Z3KParser();
-            parser.LogIn(username,password);
+            parser.LogIn(username, password);
             var json = await parser.GetPersonJson(name);
-            int departmentId = (int)json["data"]["profile"]["legacy_department_id"];
+            int departmentId = (int)json["data"]["profile"]["legacydepartmentid"];
         }
         [HttpDelete("{id}")]
         public async Task RemoveSMEAndRebuild(int id)
         {
             var temp = dataRepository.Filter().Last();
-            List<Sme> smesLeft = temp.smes.Where(x => x.z3kid != id).ToList();
+            List<Sme> SmeListLeft = temp.SmeList.Where(x => x.Z3kId != id).ToList();
             List<Team> teams = new List<Team>();
-            foreach (var sme in temp.smes)
-                teams.AddRange(sme.teams);
-            Distribution dist = new Distribution(teams.Distinct().ToList(), smesLeft);
+            foreach (var sme in temp.SmeList)
+                teams.AddRange(sme.Teams);
+            Distribution dist = new Distribution(teams.Distinct().ToList(), SmeListLeft);
             dist.Build();
             DistributionData data = new DistributionData();
-            data.smes = dist.smes;
-            data.time = DateTime.Now;
+            data.SmeList = dist.SmeList;
+            data.Time = DateTime.Now;
             dataRepository.Delete(temp);
             //await dataRepository.SaveChanges();
             dataRepository.Create(data);
             await dataRepository.SaveChanges();
         }
-        /*
-        [HttpPost("{id}")]
-        public async void AddSME(int id)
-        {
-            bool newSmeIsOnShift = csRepository.Filter(x => x.z3kid == id).Any();
-            string newSmeName;
-            int newSmeId;
-            string newSmeTeam;
-            //if new sme is cs then remove it from cslist and add to smelist
-            if (newSmeIsOnShift)
-            {
-                var temp = csRepository.Filter(cs => cs.z3kid == id).First();
-                csRepository.Delete(temp);
-                newSmeName = temp.name;
-                newSmeTeam = temp.team;
-            }
-            //if new sme is not present then find his name and add it
-            else
-            {
-                Z3KParser parser = new Z3KParser();
-                var json = await parser.GetPersonJson(id);
-                newSmeName = json["data"]["full_name_eng"].ToString();
-                newSmeTeam = json["data"]["positions"].Last()["org_unit_name"].ToString();
-            }
-            newSmeId = id;
-            Sme newSme = new Sme(newSmeId,newSmeName, newSmeTeam);
-            smeRepository.Create(newSme);
-            await dataRepository.SaveChanges();
-        }
-        */
-        //on list sort
+
         [HttpPut()]
         public void UpdateDistribution([FromBody] List<Sme> sorted)
         {
-            dataRepository.Filter().Last().smes = sorted;
+            dataRepository.Filter().Last().SmeList = sorted;
             dataRepository.SaveChanges();
         }
     }

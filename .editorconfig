@@ -1,0 +1,4 @@
+﻿[*.CSRepresentative]
+
+# CSRepresentative0184: 'Выражение, заданное выражению is не может иметь указанный тип
+dotnetdiagnostic.CSRepresentative0184.severity = suggestion

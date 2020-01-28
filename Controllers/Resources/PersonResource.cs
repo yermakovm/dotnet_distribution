@@ -1,20 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
+﻿
 namespace DistributionAPI.Controllers.Resources
 {
     public class PersonResource
     {
-        public int z3kid { get; set; }
-        public string name { get; set; }
-        public string location { get; set; }
-        public string avatar { get; set; }
+        public int Z3kId { get; set; }
+        public string Name { get; set; }
+        public string Team { get; set; }
+        public string Location { get; set; }
+        public string Avatar { get; set; }
         public PersonResource()
         {
-            z3kid = 0;
-            name = "noname";
+            Z3kId = 0;
+            Name = "noname";
         }
 
     }
